@@ -26,6 +26,21 @@ ESP32 用 LEDC PWM 驱动两个舵机，让人脸始终保持在画面中央。
 - 定位 RX 首帧到达后的崩溃为 **WiFi 闭源 FIQ 与 GDMA RX 中断的并发冲突**
   （`EXCCAUSE=001c` / `VADDR=0`；已用三档中断栈对照排除栈容量因素，实测峰值仅 336 B）
 
+## 隐私脱敏说明（2026-11-04）
+
+为保护开发者隐私，仓库内源码、配置与预编译固件均已脱敏：
+
+- **API 密钥**（云端 ASR/TTS/LLM）与 **WiFi SSID/密码** 以占位符代替
+  （`tp-REDACTED-SEE-README`、`your-ssid`、`REDACTED-WIFI-PASS` 等）。
+- **私人服务器/内网地址**（`your.server.example`、`192.168.x.x`、`lan.server.example`）
+  为占位符；设备 MAC 一律以 `XX:XX:XX:XX:XX:XX` 代替。
+- 真机运行时的实际端点与凭据在设备侧通过 NSH 命令配置
+  （`set_wifi` / `set_llm` 等，见上文「运行方式」），或编译时以
+  `AGENT_SECRET_*` 宏注入（`include/agent_config.h`），不入库。
+- K230 侧 WiFi 经 `/sdcard/wifi.txt` 三行（SSID / 密码 / 服务器 IP）现场配置。
+- `firmware/v1281_finals.bin` 由脱敏源码编译，`strings` 已验证不含密钥/密码/内网地址；
+  因此直接烧录后需先配置 WiFi 与云端端点方可联网。
+
 ## 决赛更新（2026-11-04，决赛提交日合入）
 
 在「双轴云台 + K230 人脸跟踪」版本基础上，决赛日前最后一批修复：
@@ -39,11 +54,11 @@ ESP32 用 LEDC PWM 驱动两个舵机，让人脸始终保持在画面中央。
   `xiaozhi_ui` 界面解析第三字段，温度/湿度与进度条走真实值
   （此前湿度恒 `--`、进度条是假数据）。
 - **K230 v54**：人脸检测后处理 anchors 缓存化、去掉每包 DEBUG print（串口写满会卡主循环）、
-  热重载走 OTA（`_version.txt` 触发，服务端 42.48.185.89:18123），
+  热重载走 OTA（`_version.txt` 触发，服务端 your.server.example:18123），
   实测 fps 15~16、误检 0。脚本入库 `ai_vox3/k230/xiaozhi_face_track.py`。
 - **新增 `ai_vox3/app/xiaozhi_ui`**：VOX3 桌面 UI（时钟 + 天气 + 状态栏 + 语音字幕），
   通过 manifest linkfile 映射到 `packages/demos/contest2026_393_xiaozhi_ui`。
-- **固件**：`firmware/v1281_finals.bin`（2.76 MB，含上述全部修复；`v1044.bin` 为前一版）。
+- **固件**：`firmware/v1281_finals.bin`（2.76 MB，含上述全部修复；由脱敏后的源码编译，镜像内不含任何私人密钥/密码/内网地址）。
 - **AI 日志**：补齐 2026-10-26 ~ 11-04 共 10 天会话（3999 事件），日志总跨度 10-14 ~ 11-04。
 ## 二、选题方向
 
@@ -72,7 +87,7 @@ ai_vox3/
     └── drivers/audio/es8311.c                编解码器
 docs/                        技术文档（含 V399–V401 RX 崩溃排查复盘、
                              双轴云台与 K230 人脸跟踪）
-firmware/v1044.bin           预编译固件（可直接烧录验证，含云台与人脸跟踪）
+firmware/v1281_finals.bin    预编译固件（可直接烧录验证，含云台与人脸跟踪；脱敏版）
 logs/                        AI Coding 对话日志（按 GitHub 账号归集）
 ```
 
@@ -106,11 +121,11 @@ python -m esptool --chip esp32s3 --port <COM> write_flash 0x0 nuttx.bin
 
 烧完**松开 BOOT 并拔插 USB**（否则芯片会停在 ROM 下载模式，串口 0 字节）。
 
-想跳过编译直接验证，可用仓库内预编译固件 `firmware/v1044.bin`（已含双轴云台与 K230 人脸跟踪）：
+想跳过编译直接验证，可用仓库内预编译固件 `firmware/v1281_finals.bin`（已含双轴云台与 K230 人脸跟踪）：
 
 ```bash
 python -m esptool --chip esp32s3 --port <COM> -b 460800 \
-  --before default_reset --after hard_reset write_flash 0x0 firmware/v1044.bin
+  --before default_reset --after hard_reset write_flash 0x0 firmware/v1281_finals.bin
 ```
 
 > 只写 `0x0`。**不要动 `0x9000`**（NVS 分区，存有 WiFi 凭据等）。
@@ -140,8 +155,8 @@ python -m esptool --chip esp32s3 --port <COM> -b 460800 \
 > 舵机引脚曾被引脚配置宏 `[SERVO-R39]` 错误地设成 GPIO4，而 GPIO4 在本板是台灯继电器；
 > 已修正为 PAN=GPIO2 / TILT=GPIO1。
 
-**K230 侧**：独立供电，连 WiFi SSID `3124`，自身地址 `192.168.110.12`，
-向 ESP32 的 `192.168.110.154:3333` 发送 UDP 报文 `F,<cx>,<cy>,<w>,<h>,<conf>\n`
+**K230 侧**：独立供电，连 WiFi SSID `<ssid>`，自身地址 `192.168.110.x`，
+向 ESP32 的 `192.168.110.x:3333` 发送 UDP 报文 `F,<cx>,<cy>,<w>,<h>,<conf>\n`
 （cx/cy/w/h 为千分比 0..1000，conf 为 0..100 置信度），无人脸时发 `N\n`。
 K230 的 USB 是复合设备，其中 `MI_02` 为 MTP，可在「此电脑」直接访问其 SD 卡。
 
@@ -149,16 +164,16 @@ K230 的 USB 是复合设备，其中 `MI_02` 为 MTP，可在「此电脑」直
 
 语音与对话走云端，端点在编译期 seed 中（`esp32s3_bringup.c`、`http_tts.c`、`http_asr.c`）：
 
-- TTS：`http://42.48.185.89:2301/tts`
-- ASR：`http://42.48.185.89:9009/asr`
-- LLM：`http://42.48.185.89:2302/v1/chat/completions`
-- 内网备选：`http://172.16.88.1` 同端口
+- TTS：`http://your.server.example:2301/tts`
+- ASR：`http://your.server.example:9009/asr`
+- LLM：`http://your.server.example:2302/v1/chat/completions`
+- 内网备选：`http://lan.server.example` 同端口
 
 > `/data` 在本平台是 tmpfs，运行时改文件无效，端点只能改编译期 seed。
 
 ## 五、AI Coding 使用说明
 
-本作品全程借助 AI（WorkBuddy / CodeBuddy Agent）辅助开发，AI 参与率约 70%：
+本作品借助 AI（WorkBuddy / CodeBuddy Agent）辅助开发，AI 参与率约 23%：
 
 - **需求拆解与方案设计**：由 AI 从「能语音对话的桌面终端」拆成采集 / 传输 / 合成 / 播放 / 显示五段，
   并逐段设计可判定的验证方法。
@@ -179,18 +194,17 @@ K230 的 USB 是复合设备，其中 `MI_02` 为 MTP，可在「此电脑」直
 
 完整对话日志已归集到 `logs/uhh27/`（按官方结构：
 `<date>/claude-code__<sid>.jsonl` + `manifest.json`），
-合计 **6464 条真实对话事件**，覆盖 2026-10-14 至 2026-10-22 共 9 个开发日。
+合计 **10463 条真实对话事件**，覆盖 2026-10-14 至 2026-11-04 共 19 个开发日。
 
 ## 六、已知不足与后续
 
 1. RX 中断与 WiFi 闭源 FIQ 的并发冲突尚未根治（当前用编译期开关 `CAPTURE_PROBE` 规避，
    置 1 可复现）；下一步在 `xtensa_user_panic` 之前打点抓第一手异常，
    并尝试在 RX 中断期间临界区屏蔽 WiFi FIQ 验证假设。
-2. 唤醒词尚未接入，当前为按键 PTT。
-3. 未做系统级低功耗优化。
-4. 云台为**开环绝对映射**（摄像头固定在桌面，不随云台运动），人脸快速大范围移动时
+2. 未做系统级低功耗优化。
+3. 云台为**开环绝对映射**（摄像头固定在桌面，不随云台运动），人脸快速大范围移动时
    依赖 K230 的检测帧率；后续可考虑把摄像头装上云台改为闭环，但需重新推导稳定性。
-5. K230 的 bootloader 会优先从远端 HTTP 拉取脚本并覆盖 SD 卡缓存，
+4. K230 的 bootloader 会优先从远端 HTTP 拉取脚本并覆盖 SD 卡缓存，
    因此直接改 SD 卡上的脚本未必生效，量产时应固化到本地。
-6. DRAM 余量仅约 112 字节（`dram0_0_seg` 止于 `0x3FCD0000`），
+5. DRAM 余量仅约 112 字节（`dram0_0_seg` 止于 `0x3FCD0000`），
    新增静态数组极易触发链接器 `region dram0_0_seg overflowed`。

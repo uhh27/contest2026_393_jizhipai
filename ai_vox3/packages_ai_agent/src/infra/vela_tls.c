@@ -70,7 +70,7 @@ static const char* TAG = "vela_tls";
  * 内部（连插桩的 "getaddrinfo failed" 都没打出来，说明根本没返回）。
  *
  * 与其继续在 DNS 上兜圈，不如像LLM 那样走 IP 直连 —— 本项目已有成熟先例：
- *   [V358] llm host 42.48.185.89 -> 42.48.185.89
+ *   [V358] llm host your.server.example -> your.server.example
  * IP 直连一直是能通的那条路（DNS 从来没通过）。
  *
  * token-plan-cn.xiaomimimo.com 是小米云的 ALB，PC 侧实测解析到：

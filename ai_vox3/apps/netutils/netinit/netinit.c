@@ -30,11 +30,11 @@
 #ifdef CONFIG_NETINIT_WAPI_SSID
 #  undef CONFIG_NETINIT_WAPI_SSID
 #endif
-#define CONFIG_NETINIT_WAPI_SSID "3124"
+#define CONFIG_NETINIT_WAPI_SSID "your-ssid"
 #ifdef CONFIG_NETINIT_WAPI_PASSPHRASE
 #  undef CONFIG_NETINIT_WAPI_PASSPHRASE
 #endif
-#define CONFIG_NETINIT_WAPI_PASSPHRASE "rczzzhl312"
+#define CONFIG_NETINIT_WAPI_PASSPHRASE "REDACTED-WIFI-PASS"
 
 #include <errno.h>
 #include <stdio.h>
@@ -940,13 +940,13 @@ static FAR void *netinit_wifi_diag_thread(FAR void *arg)
 
                   /* reference: the router that keeps failing */
 
-                  { "31241",   "rczzzhl312", 5, 0 },
+                  { "your-ssid-2",   "REDACTED-WIFI-PASS", 5, 0 },
 
                   /* differential: a wrong key can only fail at the 4-way
                    * handshake (reason 15).  If it reports reason 2 like the
                    * correct key does, reason 2 is not about credentials. */
 
-                  { "31241",   "rczzzhl312",  5, 0 }
+                  { "your-ssid-2",   "REDACTED-WIFI-PASS",  5, 0 }
                 };
 
                 int k;

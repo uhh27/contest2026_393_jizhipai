@@ -40,7 +40,7 @@
 #define HTTP_ASR_TAG "http_asr"
 
 #ifndef CONFIG_AI_AGENT_ASR_HTTP_URL
-#define CONFIG_AI_AGENT_ASR_HTTP_URL "http://172.16.88.1:9009/asr"
+#define CONFIG_AI_AGENT_ASR_HTTP_URL "http://lan.server.example:9009/asr"
 #endif
 
 /* config.json override key */

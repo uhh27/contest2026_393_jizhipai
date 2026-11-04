@@ -173,7 +173,7 @@ int voice_asr_recognize(const unsigned char* pcm_data,
          * [V693] The registration test matters: the call below is a direct
          * symbol reference, so without it this branch also fires when no
          * "http" backend exists and waits out the full 5 s connect
-         * timeout against 42.48.185.89:19009. */
+         * timeout against your.server.example:19009. */
         ret = http_asr_recognize(pcm_data, pcm_len, text_out, text_cap);
     }
 

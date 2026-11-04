@@ -47,7 +47,7 @@ extern int g_v1024_quiet;
 
 /* API key provisioned for this device. */
 #define MIMO_API_KEY \
-  "tp-cxxpul014n9wq31xpjt9gxope9d51s6v7wcdbvob9560cxpq"
+  "tp-REDACTED-SEE-README"
 
 /* [V706] Was 384 KB.  The reply carries the clip as base64 WAV and grows
  * ~5.3 KB per input byte, so 384 KB capped one request at ~72 text bytes

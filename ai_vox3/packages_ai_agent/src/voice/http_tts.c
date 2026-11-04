@@ -53,9 +53,9 @@
 #define HTTP_TTS_TAG "http_tts"
 
 #ifndef CONFIG_AI_AGENT_TTS_HTTP_URL
-/* [LOCAL-TTS 2026-10-27] 原来的 172.16.88.1 是编译机，板子跨网段够不到（实测 ping 不通）。
- * 192.168.110.25 是用户 PC，与板子同网段，跑 tts_server.py。 */
-#define CONFIG_AI_AGENT_TTS_HTTP_URL "http://192.168.31.239:2301/tts"
+/* [LOCAL-TTS 2026-10-27] 原来的 lan.server.example 是编译机，板子跨网段够不到（实测 ping 不通）。
+ * 192.168.110.x 是用户 PC，与板子同网段，跑 tts_server.py。 */
+#define CONFIG_AI_AGENT_TTS_HTTP_URL "http://192.168.31.x:2301/tts"
 #endif
 
 /* config.json override key */
@@ -85,7 +85,7 @@
 #ifndef HTTP_DIAG_HOST
 /* [V361] 原来指向 127.0.0.1（板子自己），每次 diag 都要白等
  * 300ms 建连超时；改成真正的 TTS bridge 所在主机。 */
-#  define HTTP_DIAG_HOST "172.16.88.1"
+#  define HTTP_DIAG_HOST "lan.server.example"
 #endif
 
 #ifndef HTTP_DIAG_PORT

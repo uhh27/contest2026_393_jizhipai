@@ -48,12 +48,12 @@
 
 /* [V641] 主 LLM 已切到小米 MiMo（token-plan-cn.xiaomimimo.com:443/v1/chat/completions, mimo-v2.6-pro）。
  * seed 每次开机重播 config.json，所以这里改了就等效于全局生效；
- * 旧的 [V358] 自建代理端点(42.48.185.89:2302, 无 API key)保留在下方注释中备查。
+ * 旧的 [V358] 自建代理端点(your.server.example:2302, 无 API key)保留在下方注释中备查。
  *
  * [V358] LLM 端点单点开关：改这三行即可整固件切换 LLM 后端。
  * 固件用的是 OpenAI 兼容协议：POST <path>（默认 /v1/chat/completions），
  * port == "443" 时走 TLS（vela_https_post_json），否则走明文 HTTP。
- * 注意：服务器 42.48.185.89 上的 vLLM 在 k8s ClusterIP(10.43.237.240:80)
+ * 注意：服务器 your.server.example 上的 vLLM 在 k8s ClusterIP(10.x.x.x:80)
  * 后面，板子侧没有可直连的 LLM 端口，默认仍指向公网主机。
  */
 
@@ -67,7 +67,7 @@
 #  define AGENT_SEED_LLM_PATH "/v1/chat/completions"
 #endif
 #ifndef AGENT_SEED_LLM_KEY
-#  define AGENT_SEED_LLM_KEY "tp-cxxpul014n9wq31xpjt9gxope9d51s6v7wcdbvob9560cxpq"
+#  define AGENT_SEED_LLM_KEY "tp-REDACTED-SEE-README"
 #endif
 #ifndef AGENT_SEED_LLM_MODEL
 #  define AGENT_SEED_LLM_MODEL "mimo-v2.6-pro"
@@ -324,7 +324,7 @@ static int vox3_servo_poll_task(int argc, FAR char *argv[])
  * runs before Wi-Fi associates.
  */
 #ifndef VOX3_LOG_SHIP_HOST
-#define VOX3_LOG_SHIP_HOST "42.48.185.89"
+#define VOX3_LOG_SHIP_HOST "your.server.example"
 #endif
 #ifndef VOX3_LOG_SHIP_PORT
 #define VOX3_LOG_SHIP_PORT 2301
@@ -988,11 +988,11 @@ static void vox3_net_diag_once(void)
     }
 
   syslog(LOG_ERR, "[V58] probe gw:80     = %d\n",
-         vox3_tcp_probe("192.168.111.1", 80, 4));
+         vox3_tcp_probe("192.168.111.x", 80, 4));
   syslog(LOG_ERR, "[V58] probe srv:2301 = %d\n",
-         vox3_tcp_probe("42.48.185.89", 12301, 6));
+         vox3_tcp_probe("your.server.example", 12301, 6));
   syslog(LOG_ERR, "[V58] probe srv:9009 = %d\n",
-         vox3_tcp_probe("42.48.185.89", 19009, 6));
+         vox3_tcp_probe("your.server.example", 19009, 6));
 
   /* [V376] A/B: the same two ports on the public address.  One boot then
    * shows whether the board's egress can reach a public IP at all, which is
@@ -1130,7 +1130,7 @@ static long vox3_rfc1123_to_epoch(FAR const char *s)
  * DNS + UDP/123, neither of which the current network lets through, so
  * CLOCK_REALTIME stays at 1970 after every boot (no battery-backed RTC).
  *
- * Fix: the board already talks HTTP to the bridge (42.48.185.89:2301 -
+ * Fix: the board already talks HTTP to the bridge (your.server.example:2301 -
  * diag + heartbeat), the one transport that demonstrably works.  Issue a
  * GET, read the Date: response header (RFC 1123, always GMT) and set the
  * clock when the value is sane.  Self-paced: retry every ~60 s until the
@@ -1195,7 +1195,7 @@ static void vox3_http_time_sync(void)
   memset(&sa, 0, sizeof(sa));
   sa.sin_family      = AF_INET;
   sa.sin_port        = htons(2301);
-  sa.sin_addr.s_addr = inet_addr("42.48.185.89");
+  sa.sin_addr.s_addr = inet_addr("your.server.example");
 
   ret = connect(fd, (FAR struct sockaddr *)&sa, sizeof(sa));
   if (ret < 0 && errno == EINPROGRESS)
@@ -2345,8 +2345,8 @@ static void esp32s3_seed_agent_wifi(void)
    * asr/tts 走服务器自托管服务；mqtt 走服务器 emqx（智能家居通道）。
    */
   static const char seed[] =
-    "{\"wifi_ssid\":\"3124\",\"wifi_pass\":\"rczzzhl312\","
-    "\"tts_http_url\":\"http://192.168.31.239:2301/tts\","
+    "{\"wifi_ssid\":\"<ssid>\",\"wifi_pass\":\"REDACTED-WIFI-PASS\","
+    "\"tts_http_url\":\"http://192.168.31.x:2301/tts\","
     "\"api_key\":\"" AGENT_SEED_LLM_KEY "\","
     "\"model\":\"" AGENT_SEED_LLM_MODEL "\","
     "\"llm_host\":\"" AGENT_SEED_LLM_HOST "\","
@@ -2362,7 +2362,7 @@ static void esp32s3_seed_agent_wifi(void)
     /* [V693] asr_http_url / tts_http_url deliberately omitted: speech is
      * Xiaomi MiMo only now (mimo-v2.5-asr / mimo-v2.5-tts), and the
      * self-hosted pair on the 42 server was never reachable. */
-    "\"mqtt_broker\":\"42.48.185.89:1883\","
+    "\"mqtt_broker\":\"your.server.example:1883\","
     "\"mqtt_client_id\":\"vox3-desk\","
     "\"mqtt_topic_in\":\"agent/in\",\"mqtt_topic_out\":\"agent/out\"}";
   /* [V106] dual-path seed: board_wlan reads /data/agent, ai_agent claw_config
@@ -2393,7 +2393,7 @@ static void esp32s3_seed_agent_wifi(void)
  *
  * The V620..V623 series established, all on the same firmware, that the
  * screen bring-up is innocent and that the LVGL render task is what turns
- * 3124 association into reason=2 (AUTH_EXPIRE):
+ * <ssid> association into reason=2 (AUTH_EXPIRE):
  *
  *   V620  panel + backlight + UI            -> no link (reason=2)
  *   V621  panel + backlight, no UI          -> LINKS, then gets the lease
@@ -2726,7 +2726,7 @@ int esp32s3_bringup(void)
    * see whether the station associates again".  It was run while the real
    * blocker was still in place - [V598] had deleted the 11b/g + HT20 radio
    * configuration that [V273] had added to cure a marginal transmit path.
-   * [V612] restored it and 3124 now links on 3 of 3 boots, so the screen can
+   * [V612] restored it and <ssid> now links on 3 of 3 boots, so the screen can
    * be brought back and re-validated together with WiFi.
    *
    * If association degrades again with the panel lit, that coupling is real
