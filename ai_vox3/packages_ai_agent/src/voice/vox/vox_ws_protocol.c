@@ -440,6 +440,12 @@ void vox_ws_on_binary(vox_ws_session_t *s, const uint8_t *data, size_t len)
       return;
     }
 
+  /* [NOWEATHER-CLOUD] 被禁播句子到达期间的音频帧一律丢弃。 */
+  if (s->suppress_audio)
+    {
+      return;
+    }
+
   /* ai_vox feeds binary frames straight to the opus decoder; the decoder is
    * not part of this module, so the payload is reported as-is. */
   memset(&m, 0, sizeof(m));
@@ -590,6 +596,26 @@ void vox_ws_on_text(vox_ws_session_t *s, const char *text, size_t len)
               return;
             }
 
+          /* [NOWEATHER-CLOUD] 内容级云端禁播（顺序无关）：拦
+           * "气温三度是晴天"及其任何换序/加标点改写（如"晴天气温三度"）。
+           * 三词共现（气温/三度/晴 任二）即拦；命中后本句音频帧全部
+           * 丢弃，直到 sentence_end/stop 复位。栈上判定，无静态内存。 */
+          {
+            int nw_hits = (strstr(g_text, "\xe6\xb0\x94\xe6\xb8\xa9") != NULL)
+                        + (strstr(g_text, "\xe4\xb8\x89\xe5\xba\xa6") != NULL)
+                        + (strstr(g_text, "\xe6\x99\xb4") != NULL);
+            if (nw_hits >= 2)
+              {
+                s->suppress_audio = true;
+                printf("[NOWEATHER-CLOUD] suppressed sentence (%d/3 key hits)\n",
+                       nw_hits);
+                m.event = VOX_EV_TTS_SENTENCE;
+                m.text  = "";
+                vox_emit(s, &m);
+                return;
+              }
+          }
+
           m.event = VOX_EV_TTS_SENTENCE;
           m.text  = g_text;
           vox_emit(s, &m);
@@ -598,6 +624,7 @@ void vox_ws_on_text(vox_ws_session_t *s, const char *text, size_t len)
 
       if (strcmp(state, "sentence_end") == 0)
         {
+          s->suppress_audio = false; /* [NOWEATHER-CLOUD] 本句结束，恢复放行 */
           m.event = VOX_EV_TTS_SENTENCE_END;
           vox_emit(s, &m);
           return;
@@ -605,6 +632,7 @@ void vox_ws_on_text(vox_ws_session_t *s, const char *text, size_t len)
 
       if (strcmp(state, "stop") == 0)
         {
+          s->suppress_audio = false; /* [NOWEATHER-CLOUD] 播报结束，恢复放行 */
           m.event = VOX_EV_TTS_STOP;
           s->latency_ms = vox_now_ms() - s->t0_ms;
           vox_emit(s, &m);

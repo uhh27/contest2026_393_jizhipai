@@ -62,7 +62,8 @@ struct servo_limit_s
 };
 
 #define SERVO_DEFAULT_DEADBAND  2      /* degrees                     */
-#define SERVO_DEFAULT_SPEED_DPS 180    /* degrees per second          */
+#define SERVO_DEFAULT_SPEED_DPS 240    /* [V1281] 180->240: 20ms 拍频下预算取整
+                                    * 只有 3 度/拍(=150dps 实际)，补偿回 4 度/拍 */
 
 static struct servo_limit_s g_limits[2] =
 {
@@ -189,7 +190,7 @@ static int servo_set_ch(struct servo_ch_s *ch, int angle)
   {
     static unsigned int s_v1030_writes;
     s_v1030_writes++;
-    if ((s_v1030_writes & 7u) == 1u)
+    if ((s_v1030_writes & 255u) == 1u)  /* [V1281] 拍频提到 50Hz，日志跟着降频 */
       {
         syslog(LOG_INFO, "[V1030] servo ch=%d angle=%d real=%d -> duty=%u\n",
                ch->idx, angle, real,
@@ -360,13 +361,16 @@ int servo_shake(void)
 /* 上电自检: 两轴各扫 0->180->90，肉眼即可确认舵机在线 */
 int servo_self_test(void)
 {
-  syslog(LOG_INFO, "servo: self-test start\n");
-  servo_set_ch(&g_pan, 0);   usleep(400000);
-  servo_set_ch(&g_pan, 180); usleep(400000);
-  servo_set_ch(&g_pan, 90);  usleep(300000);
-  servo_set_ch(&g_tilt, 0);   usleep(400000);
-  servo_set_ch(&g_tilt, 180); usleep(400000);
-  servo_set_ch(&g_tilt, 90);  usleep(300000);
+  /* [V1263] 原来是 0->180 扫全行程：会撞机械限位（齿轮顶死、嗡嗡响），
+   * 而且开机第一眼就是"猛低一下头再猛抬起来"——很容易被当成故障。
+   * 改成中位附近 +/-20 度的小幅摆动，验证舵机在线足够了。 */
+  syslog(LOG_INFO, "servo: self-test start (small sweep)\n");
+  servo_set_ch(&g_pan, 70);   usleep(300000);
+  servo_set_ch(&g_pan, 110);  usleep(300000);
+  servo_set_ch(&g_pan, 90);   usleep(200000);
+  servo_set_ch(&g_tilt, 70);  usleep(300000);
+  servo_set_ch(&g_tilt, 110); usleep(300000);
+  servo_set_ch(&g_tilt, 90);  usleep(200000);
   syslog(LOG_INFO, "servo: self-test done\n");
   return OK;
 }
@@ -385,7 +389,11 @@ int servo_self_test(void)
  * 归中会和它们打架。只有在"请求角度"与"实际最后写入角度"偏差超过
  * SERVO_KEEPALIVE_DRIFT_DEG 时才重新写一次，用于纠正偏差。
  */
-#define SERVO_KEEPALIVE_PERIOD_MS   200
+#define SERVO_KEEPALIVE_PERIOD_MS   20    /* [V1281] 100ms 一拍=每秒最多 10 次占空比更新，
+                                   * 舵机一步甩到位再停 100ms —— 用户看到的
+                                   * 「卡卡的」就是它。改 20ms=50Hz，与舵机
+                                   * PWM 帧率对齐；目标角度由收包线程粗粒度
+                                   * 更新没关系，运动在这里被连续斜坡化。 */
 #define SERVO_KEEPALIVE_DRIFT_DEG   2
 
 

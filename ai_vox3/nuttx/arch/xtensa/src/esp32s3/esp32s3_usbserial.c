@@ -57,16 +57,6 @@
 
 #define ESP32S3_USBCDC_BUFFERSIZE 64
 
-/* [V961] TX ring was 64 bytes.
- *
- * 64 bytes held maybe one log line, and since V961 made writes non-blocking
- * everything past the ring is now DROPPED instead of blocking.  During a boot
- * burst that would not leave enough of the log to debug with even when a host
- * is reading.  1024 bytes costs 1 KB twice (rx + tx) and is still bounded, so
- * a cold boot with nobody listening still gives up promptly. */
-#undef ESP32S3_USBCDC_BUFFERSIZE
-#define ESP32S3_USBCDC_BUFFERSIZE 1024
-
 /****************************************************************************
  * Private Types
  ****************************************************************************/

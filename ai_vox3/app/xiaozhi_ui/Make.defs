@@ -1,0 +1,7 @@
+############################################################################
+# XiaoZhi-style LVGL UI - Contest 2026 team 307
+############################################################################
+
+ifneq ($(CONFIG_LVX_CONTEST2026_393_XIAOZHI_UI),)
+CONFIGURED_APPS += $(APPDIR)/packages/demos/contest2026_393_xiaozhi_ui
+endif
