@@ -1148,12 +1148,12 @@ static void* voice_boot_test_task(void* arg)
  * SNTP needs UDP/123 to four different servers and on this network all of
  * them time out, which leaves the RTC at 1970 and makes info_screen paint
  * "--:--" (it only draws HH:MM once tm_year + 1900 >= 2020).  The TTS bridge
- * on 172.16.88.1:2301 answers GET /time with unix seconds and TCP 2301 is
+ * on lan.server.example:2301 answers GET /time with unix seconds and TCP 2301 is
  * the one path the board has proven it can reach.
  */
 
 #ifndef AGENT_TIME_HTTP_HOST
-#  define AGENT_TIME_HTTP_HOST "172.16.88.1"
+#  define AGENT_TIME_HTTP_HOST "lan.server.example"
 #endif
 
 #ifndef AGENT_TIME_HTTP_PORT
@@ -1375,7 +1375,7 @@ static void* agent_time_keeper(void* arg)
     /* [V64] While the clock is still unset (1970) retry every 30 s: the panel
      * paints "--:--" until tm_year + 1900 >= 2020, and the boot-window
      * attempt often lands before the link has settled (measured: the probe to
-     * 172.16.88.1:2301 timed out at t=16 s and succeeded at t=17 s).  Once
+     * lan.server.example:2301 timed out at t=16 s and succeeded at t=17 s).  Once
      * the clock is set, drift correction every 5 minutes is plenty. */
 
     sleep((before < 1600000000L) ? 30 : 300);

@@ -15,8 +15,8 @@ import gc
 import os
 import sys
 import time
-WIFI_SSID = "31246"              # ★ v46：默认回 3124 网；现场换网改 /sdcard/wifi.txt 第1行
-WIFI_PASS = "rczzzhl312"
+WIFI_SSID = "your-ssid"              # ★ v46：默认回 <ssid> 网；现场换网改 /sdcard/wifi.txt 第1行
+WIFI_PASS = "REDACTED-WIFI-PASS"
 VOX3_IP = ""                     # 仅 USE_BROADCAST=False 时填；v46 起默认走广播不用管
 VOX3_PORT = 3333
 USE_BROADCAST = True             # 广播——VOX3 是 DHCP 也无所谓，IP 不用猜
@@ -103,7 +103,7 @@ SCRIPT_VER = "v54"              # v54: 见文件头 v54 说明
 #     /sdcard/wifi.txt 第3行填，现场是空的 → 这段代码从来没执行过），
 #     路径还是根目录的 /_version.txt，而 OTA 实际在
 #     /k230-8f3c9a1e/_version.txt。现在改用独立的 OTA_* 常量直连
-#     42.48.185.89:18123，60 秒查一次、超时 2 秒。
+#     your.server.example:18123，60 秒查一次、超时 2 秒。
 #     **从此改脚本只需改服务端 _version.txt，板上 1 分钟内自动重启拉新，
 #     再也不用拔插 USB。**
 #  ③ 诊断行开头带上脚本版本（#s=v54 ...），一眼能看出板上跑的是哪版 ——
@@ -165,7 +165,7 @@ HOT_RELOAD = True               # [v54] 打开：改服务端 _version.txt 即�
 PC_HOST = ""                    # ★ v46：由 wifi.txt 第3行（PC_IP）填；空=跳过 OTA 检查
 PC_PORT = 8123
 # [v54] 热重载专用：直连 OTA 服务器，不再依赖 wifi.txt 里的 PC_IP
-OTA_HOST = "42.48.185.89"
+OTA_HOST = "your.server.example"
 OTA_PORT = 18123
 OTA_BASE = "/k230-8f3c9a1e"
 SCRIPT_NAME = "xiaozhi_face_track.py"
@@ -332,8 +332,8 @@ def connect_wifi(timeout_s=25):
             raise RuntimeError("wifi connect failed (password? 5G-only AP?)")
         time.sleep_ms(300)
     log("wifi OK, ip =", sta.ifconfig()[0])
-    # ★ v46.1：按自己的 IP/掩码算网段定向广播（如 10.164.137.255）。
-    #   实测部分路由器不转发 255.255.255.255 受限广播（31246 网就不转），
+    # ★ v46.1：按自己的 IP/掩码算网段定向广播（如 10.x.x.255）。
+    #   实测部分路由器不转发 255.255.255.255 受限广播（<ssid> 网就不转），
     #   而网段定向广播在 INTELNET 上验证过能通。算不出来就退回受限广播。
     global BROADCAST_IP
     try:
@@ -780,10 +780,10 @@ def maybe_shot(sock):
             log("cmd", txt, "from", addr)
             return kw
     return ""
-BOOT_MAIN = r'''SSID = "31246"
-PASS = "rczzzhl312"
+BOOT_MAIN = r'''SSID = "your-ssid"
+PASS = "REDACTED-WIFI-PASS"
 SERVERS = [
-    ("42.48.185.89", 18123),
+    ("your.server.example", 18123),
 ]
 # ★ v46：现场换网——/sdcard/wifi.txt 三行：SSID / 密码 / PC_IP(可选)
 #   改这个文件即可换网；PC_IP 给了就把它加进 OTA 兜底服务器列表

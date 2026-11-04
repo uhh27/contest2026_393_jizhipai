@@ -87,7 +87,7 @@ bool network_is_connected(void)
  *
  *   于是 getaddrinfo("token-plan-cn.xiaomimimo.com") 永远拿不到名字服务器，
  *   [vela_tls] 打印完 TCP connect 那一行就永久静默 —— 看着像网络不通，
- *   其实是没配 DNS。IP 直连（42.48.185.89:2301）能通，正是这个原因。
+ *   其实是没配 DNS。IP 直连（your.server.example:2301）能通，正是这个原因。
  *
  *   DHCP 也失败过（[V113] second DHCP attempt also failed），不能指望 DHCP
  *   下发的 DNS，必须显式写死。
@@ -241,10 +241,10 @@ static void ensure_dns(void)
      *   - getaddrinfo() 卡在里面不返回（包根本出不去，只在本地等超时）；
      *   - 改成 IP 直连 111.206.191.150:443 同样建不了连；
      *   - 之前[V58] probe gw/srv/pub 全是 -110(ETIMEDOUT)，包括内网
-     *     42.48.185.89 —— 那些"能通"的印象其实也是超时。
+     *     your.server.example —— 那些"能通"的印象其实也是超时。
      *
      * 为什么没有路由：编译期 CONFIG_NETINIT_DRIPADDR=0x0a000001 即 10.0.0.1，
-     * 那是另一个网络的网关，跟本机实际网段 192.168.31.0/24 毫无关系。
+     * 那是另一个网络的网关，跟本机实际网段 192.168.x.0/24 毫无关系。
      * DHCP 模式下这个静态值不参与路由表写入，而本项目**没有任何代码**
      * 在 DHCP 之后补设默认路由（grep netlib_set_dripv4addr 在 packages/ 下
      * 零命中）。
@@ -931,7 +931,7 @@ int network_set_dns(const char* primary, const char* secondary)
      * failed instantly and connect() returned
      * MBEDTLS_ERR_NET_CONNECT_FAILED (0x52) in about 5 ms.  That looks
      * exactly like "the router is broken" on every AP, while
-     * IP-literal requests (42.48.185.89:2301) kept working. */
+     * IP-literal requests (your.server.example:2301) kept working. */
     {
         struct in_addr dns_addr;
 

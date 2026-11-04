@@ -145,7 +145,7 @@ int voice_tts_speak_stream(const char* text,
    * The reason was that the self-hosted endpoint needed neither DNS nor
    * internet egress, which was true while the board had no working uplink.
    * MiMo is reachable now, so that ordering only cost three connect
-   * attempts against a dead 42.48.185.89:12301 before every line of
+   * attempts against a dead your.server.example:12301 before every line of
    * speech, and the selected backend was never really in charge.
    */
   if (s_active && s_active->name &&

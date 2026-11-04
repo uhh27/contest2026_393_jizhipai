@@ -40,7 +40,7 @@ extern int g_v1024_quiet;
 #define MIMO_ASR_MODEL   "mimo-v2.5-asr"
 
 #define MIMO_API_KEY \
-  "tp-cxxpul014n9wq31xpjt9gxope9d51s6v7wcdbvob9560cxpq"
+  "tp-REDACTED-SEE-README"
 
 /* Cap the clip we upload: 8 s of 16 kHz mono 16-bit PCM. */
 #define MIMO_ASR_MAX_PCM (16u * 2u * 8000u)
@@ -1044,7 +1044,7 @@ int __attribute__((noinline, used)) mimo_asr_register(void)
   if (ret == 0)
     {
       /* [V501] Cloud MiMo is reachable and verified: use it.  The previous
-     * "http" backend pointed at 172.16.88.1:9009, which does not exist,
+     * "http" backend pointed at lan.server.example:9009, which does not exist,
      * so ASR could never produce a transcript.  "http" stays registered
      * as a fallback. */
       voice_asr_set_backend("mimo");   /* literal: mimo_asr.h is not

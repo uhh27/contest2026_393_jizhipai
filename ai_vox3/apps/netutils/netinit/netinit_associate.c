@@ -30,11 +30,11 @@
 #ifdef CONFIG_NETINIT_WAPI_SSID
 #  undef CONFIG_NETINIT_WAPI_SSID
 #endif
-#define CONFIG_NETINIT_WAPI_SSID "3124"
+#define CONFIG_NETINIT_WAPI_SSID "your-ssid"
 #ifdef CONFIG_NETINIT_WAPI_PASSPHRASE
 #  undef CONFIG_NETINIT_WAPI_PASSPHRASE
 #endif
-#define CONFIG_NETINIT_WAPI_PASSPHRASE "rczzzhl312"
+#define CONFIG_NETINIT_WAPI_PASSPHRASE "REDACTED-WIFI-PASS"
 
 #include <syslog.h>
 #include <stdio.h>
@@ -251,8 +251,8 @@ int netinit_associate(FAR const char *ifname)
          (int)g_assoc_saved_phraselen);
   /* [V101] multi-SSID fallback: campus APs reject ESP intermittently.
    * Try each candidate (same passphrase) until one associates. */
-  /* [V103] "3124" REMOVED.  It is not our network: it is a different
-   * device (BSSID 1e:36:dc:4f:3e:75, locally-administered MAC, WPA2-only
+  /* [V103] "your-ssid" REMOVED.  It is not our network: it is a different
+   * device (BSSID XX:XX:XX:XX:XX:XX, locally-administered MAC, WPA2-only
    * where our AP is WPA/WPA2 mixed) sitting on the same channel with a far
    * stronger signal.  802.11 association does NOT verify the key, so the
    * station could "connect" to it and then sit there with no traffic at
@@ -263,11 +263,11 @@ int netinit_associate(FAR const char *ifname)
    * v603 proved the link comes up (LINKED / connected=1 / zero disconnects)
    * as soon as pmf_cfg.capable is false - which is exactly what the working
    * xiaozhi firmware does: it bzero()s the whole wifi_config_t and never
-   * touches pmf_cfg, so its PMF is off.  With that fixed, 3124 is tried
+   * touches pmf_cfg, so its PMF is off.  With that fixed, <ssid> is tried
    * first again, on the clean driver. */
-  /* [V618] 3124 first again: only the FIRST connect attempt of a boot
+  /* [V618] <ssid> first again: only the FIRST connect attempt of a boot
    * can complete, so a candidate that is merely absent burns the boot. */
-  static const char *g_ssid_candidates[] = {"3124", "31246"};
+  static const char *g_ssid_candidates[] = {"your-ssid", "your-ssid"};
   int g_ncand = (int)(sizeof(g_ssid_candidates) / sizeof(g_ssid_candidates[0]));
   ret = -ENOENT;
   for (int ci = 0; ci < g_ncand; ci++)

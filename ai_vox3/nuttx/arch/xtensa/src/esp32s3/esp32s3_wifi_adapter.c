@@ -5344,8 +5344,8 @@ int esp_wifi_sta_start(void)
    * first thing to fail when the RF or the supply is marginal.
    *
    * Observed today without it: the same build links cleanly on one boot
-   * ([V103] LINKED ssid=3124) and then reports reason 39 / reason 2 - the AP
-   * never answers the authentication frame - on the next, against 3124 AND
+   * ([V103] LINKED ssid=<ssid>) and then reports reason 39 / reason 2 - the AP
+   * never answers the authentication frame - on the next, against <ssid> AND
    * against the phone hotspot alike.  That alternation is a marginal-TX
    * signature, not a parameter mismatch.
    *
@@ -5374,13 +5374,13 @@ int esp_wifi_sta_start(void)
 
   /* [WIFI-DIAG2 2026-09-14] One-shot scan right after start: record what the
    * target AP really advertises (authmode + channel).  The panel could only
-   * show the disconnect reason; this answers the question behind it - is 3124
+   * show the disconnect reason; this answers the question behind it - is <ssid>
    * plain WPA2-PSK, an enterprise (802.1X) AP, or WPA3?  This is netinit's
    * ifup task context, never a Wi-Fi event callback, so a blocking scan is
    * safe here.
    */
 #ifndef CONFIG_NETINIT_WAPI_SSID
-#  define CONFIG_NETINIT_WAPI_SSID "3124"
+#  define CONFIG_NETINIT_WAPI_SSID "your-ssid"
 #endif
   {
     static wifi_ap_record_t s_recs[24];
@@ -5397,7 +5397,7 @@ int esp_wifi_sta_start(void)
      * Added in round 5.  It runs while the station is already up and leaves
      * the radio parked on whichever channel the scan finished on, which is
      * not where the association then happens.  The AP details are known
-     * (3124 / 9a:4a:6b:84:b1:9a / channel 11 / -50 dBm / authmode 4), so the
+     * (<ssid> / XX:XX:XX:XX:XX:XX / channel 11 / -50 dBm / authmode 4), so the
      * scan is no longer worth its side effects. */
 
     /* [V47] Run the scan.  See the file header note: the station was
@@ -5467,9 +5467,9 @@ int esp_wifi_sta_start(void)
                 /* [V51] Exact match only.
                  *
                  * This used to be a 4-character prefix compare, so the
-                 * neighbour SSID "3124" matched "3124" and steered the whole
-                 * connect path onto the wrong AP (BSSID 3c:67:c9:80:73:bd,
-                 * channel 6) -- which is why the station searched for "3124"
+                 * neighbour SSID "your-ssid" matched "your-ssid" and steered the whole
+                 * connect path onto the wrong AP (BSSID XX:XX:XX:XX:XX:XX,
+                 * channel 6) -- which is why the station searched for "your-ssid"
                  * on channel 6 and reported NO_AP_FOUND. */
 
                 if (strncmp((const char *)s_recs[si].ssid,
@@ -6445,8 +6445,8 @@ int esp_wifi_sta_connect(void)
    * explicitly from the seeded config file, falling back to the known AP.
    * Matches esp32s3_seed_agent_wifi() in esp32s3_bringup.c. */
   {
-    static const char *d_ssid = "3124";
-    static const char *d_pass = "rczzzhl312";
+    static const char *d_ssid = "your-ssid";
+    static const char *d_pass = "REDACTED-WIFI-PASS";
     const char *s = d_ssid;
     const char *p = d_pass;
     char buf[640];
@@ -6493,14 +6493,14 @@ int esp_wifi_sta_connect(void)
      * netinit_associate() walks g_ssid_candidates[] and writes each candidate
      * into g_sta_wifi_cfg before calling us.  The unconditional overwrite
      * below made that list purely decorative: with the phone hotspot switched
-     * off, every attempt was forced back to "3124", which was no longer in
+     * off, every attempt was forced back to "your-ssid", which was no longer in
      * the scan result at all, so the log filled with reason 201
      * (NO_AP_FOUND) while the campus AP on channel 1 sat right there in the
      * boot scan.  Only "vox3"/"8888" - the neighbours the early R-builds used
      * to lock onto - are still treated as unusable. */
 
     /* [V1262] The Wi-Fi blob keeps a station config in its own NVS
-     * and reloads it on every boot; it still carried ssid=31246
+     * and reloads it on every boot; it still carried ssid=<ssid>
      * from older firmware and (via the old "keep" block) beat both
      * config.json and the compiled default, so the radio kept
      * joining the wrong AP.  Ignore that residue: the SSID is now
@@ -6525,9 +6525,9 @@ int esp_wifi_sta_connect(void)
    * checking.
    *
    * So clear the pinning and leave scan_method / sort_method / pmf_cfg /
-   * threshold at their defaults.  The blob then scans, finds 3124 on
+   * threshold at their defaults.  The blob then scans, finds <ssid> on
    * channel 11 and locks its radio there itself - which the boot scan has
-   * already proven it can do (3124, A4C11R-49).
+   * already proven it can do (<ssid>, A4C11R-49).
    */
 
   /* [V49] MAC-switch experiment + channel read-back.  See the patch header.
@@ -6583,7 +6583,7 @@ int esp_wifi_sta_connect(void)
   /* [V55] Match the vendor stack field for field.
    *
    * A minimal ESP-IDF/Arduino sketch associates with this AP in ~3 s and gets
-   * 192.168.111.68 on this very board, leaving every field at its default and
+   * 192.168.111.x on this very board, leaving every field at its default and
    * setting only ssid/password.  Everything below used to deviate; the
    * threshold in particular makes the driver discard APs during its own
    * internal scan, which is how an unanswered AUTH frame happens. */
@@ -6594,7 +6594,7 @@ int esp_wifi_sta_connect(void)
   g_sta_wifi_cfg.sta.sort_method        = WIFI_CONNECT_AP_BY_SIGNAL;
   g_sta_wifi_cfg.sta.listen_interval    = 0;
   g_sta_wifi_cfg.sta.sae_pwe_h2e        = WPA3_SAE_PWE_UNSPECIFIED;
-  /* [V607] Back to the PROVEN-WORKING v603 shape: MFPC=0/MFPR=0 + threshold=WIFI_AUTH_OPEN.  v603 measured LINKED + connected=1 + zero disconnects on 3124.  See the audit report for why 3124 still cannot be reached. */
+  /* [V607] Back to the PROVEN-WORKING v603 shape: MFPC=0/MFPR=0 + threshold=WIFI_AUTH_OPEN.  v603 measured LINKED + connected=1 + zero disconnects on <ssid>.  See the audit report for why <ssid> still cannot be reached. */
   g_sta_wifi_cfg.sta.pmf_cfg.capable    = true;
   g_sta_wifi_cfg.sta.pmf_cfg.required   = false;
   /* [V101] Threshold off.  A factory-reset router usually advertises plain
