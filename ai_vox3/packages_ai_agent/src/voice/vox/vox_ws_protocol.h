@@ -136,6 +136,7 @@ struct vox_ws_session
   uint32_t              sent_frames;
   uint32_t              parse_errors;
   bool                  want_close;
+  bool                  suppress_audio; /* [NOWEATHER-CLOUD] 本句被禁播，丢弃音频帧 */
   vox_ws_observer_t     obs;
 };
 
